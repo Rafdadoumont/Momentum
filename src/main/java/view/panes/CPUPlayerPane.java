@@ -8,6 +8,7 @@ public class CPUPlayerPane extends PlayerPane {
     CPUPlayerPaneController cpuPlayerPaneController;
     Label titleLabel;
     Label subTitleLabel;
+    Label marbleCountLabel;
 
     public CPUPlayerPane() {
         titleLabel = new Label();
@@ -16,7 +17,9 @@ public class CPUPlayerPane extends PlayerPane {
         subTitleLabel = new Label();
         subTitleLabel.setFont(new Font("Arial Black", 16));
 
-        getChildren().addAll(titleLabel, subTitleLabel);
+        marbleCountLabel = new Label();
+
+        getChildren().addAll(titleLabel, subTitleLabel, marbleCountLabel);
     }
 
     public void setCpuPlayerPaneController(CPUPlayerPaneController cpuPlayerPaneController) {
@@ -29,5 +32,9 @@ public class CPUPlayerPane extends PlayerPane {
 
     public Label getSubTitleLabel() {
         return subTitleLabel;
+    }
+
+    public Label getMarbleCountLabel() {
+        return marbleCountLabel;
     }
 }

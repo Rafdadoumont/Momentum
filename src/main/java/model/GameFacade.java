@@ -45,17 +45,21 @@ public class GameFacade {
         return game.getRound();
     }
 
+    public PlayerEnum getTurnPlayer() {
+        return game.getTurnPlayer();
+    }
+
     public void setBoardGridPane(BoardGridPane boardGridPane) {
         this.boardGridPane = boardGridPane;
     }
 
     public void setPlayerOne(PlayerTypeEnum playerType) {
-        Player player = playerFactory.createPlayer(playerType);
+        Player player = playerFactory.createPlayer(playerType, game);
         game.setPlayerOne(player);
     }
 
     public void setPlayerTwo(PlayerTypeEnum playerType) {
-        Player player = playerFactory.createPlayer(playerType);
+        Player player = playerFactory.createPlayer(playerType, game);
         game.setPlayerTwo(player);
     }
 

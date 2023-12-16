@@ -4,7 +4,8 @@ import view.panes.PlayerPaneEnum;
 
 public enum PlayerTypeEnum {
     HUMAN("model.player.HumanPlayer", "controller.HumanBoardController", PlayerPaneEnum.HUMAN),
-    RANDOM("model.player.RandomPlayer", "controller.CPUBoardController", PlayerPaneEnum.CPU);
+    RANDOM("model.player.RandomPlayer", "controller.CPUBoardController", PlayerPaneEnum.CPU),
+    MINIMAX("model.player.MinimaxPlayer", "controller.CPUBoardController", PlayerPaneEnum.CPU);
 
     private final String className;
     private final String controllerClassName;

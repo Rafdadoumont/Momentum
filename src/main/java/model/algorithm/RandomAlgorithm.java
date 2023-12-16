@@ -1,16 +1,17 @@
 package model.algorithm;
 
+import model.PlayerEnum;
+
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class RandomAlgorithm extends AlgorithmTemplate {
 
+
     @Override
-    public Node findBestChildNode(boolean isMaxPlayer, byte[][] board) {
-        Node rootNode = new Node(null, board, null);
-        List<Node> successors = getSuccessors(rootNode);
+    public byte[] getAction(PlayerEnum playerTurn, byte[][] board) {
+        List<byte[]> possibleActions = getActions(board);
         Random random = new Random();
-        return successors.get(random.nextInt(successors.size()));
+        return possibleActions.get(random.nextInt(possibleActions.size()));
     }
 }

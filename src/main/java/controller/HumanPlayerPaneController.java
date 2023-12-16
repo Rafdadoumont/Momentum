@@ -38,7 +38,5 @@ public class HumanPlayerPaneController extends PlayerPaneController implements O
         switch (event) {
             case START_GAME, MOVE_PLAYED -> updateMarbleCount();
         }
-
-
     }
 }

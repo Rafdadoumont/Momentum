@@ -1,8 +1,11 @@
 package model;
 
+import model.exceptions.IllegalMoveException;
 import model.exceptions.InvalidPlayersException;
 import model.exceptions.StateException;
 import model.player.Player;
+import model.state.FinishedEarlyState;
+import model.state.FinishedState;
 import model.state.StateContext;
 
 import java.util.*;
@@ -13,20 +16,20 @@ public class Game implements Subject {
     private final byte[][] board;
     private Player playerOne;
     private Player playerTwo;
+    private final StateContext context;
     private final Map<GameEventEnum, List<Observer>> observerMap;
-
     private Exception exception;
     private int round;
-    private Player turnPlayer;
+    private PlayerEnum turnPlayer;
     private int playerOneMarbleCount;
     private int playerTwoMarbleCount;
-    private final StateContext context;
 
     public Game() {
         board = new byte[DIMENSION][DIMENSION];
         round = 0;
         playerOneMarbleCount = MARBLE_COUNT;
         playerTwoMarbleCount = MARBLE_COUNT;
+        turnPlayer = PlayerEnum.PLAYER_ONE;
         this.observerMap = new HashMap<>();
         context = new StateContext();
 
@@ -39,8 +42,21 @@ public class Game implements Subject {
         return board;
     }
 
+    public Player getPlayerOne() {
+        return playerOne;
+    }
+
+    public Player getPlayerTwo() {
+        return playerTwo;
+    }
+
+
     public int getRound() {
         return round;
+    }
+
+    public PlayerEnum getTurnPlayer() {
+        return turnPlayer;
     }
 
     public int getPlayerOneMarbleCount() {
@@ -51,18 +67,8 @@ public class Game implements Subject {
         return playerTwoMarbleCount;
     }
 
-    public Player getPlayerOne() {
-        return playerOne;
-    }
-
-    public Player getPlayerTwo() {
-        return playerTwo;
-    }
-
     public void setPlayerOne(Player playerOne) {
-        this.playerOne = playerOne;
-        turnPlayer = playerOne;
-    }
+        this.playerOne = playerOne;}
 
     public void setPlayerTwo(Player playerTwo) {
         this.playerTwo = playerTwo;
@@ -76,10 +82,7 @@ public class Game implements Subject {
             try {
                 context.getState().start(context);
                 notifyObservers(GameEventEnum.START_GAME);
-                while (!hasPlayerWon()) {
-                    playMove();
-                }
-                finish();
+                getPlayerMove();
             } catch (StateException e) {
                 exception = e;
                 notifyObservers(GameEventEnum.EXCEPTION_THROWN);
@@ -87,64 +90,77 @@ public class Game implements Subject {
         }
     }
 
-    public void playMove() {
-        byte[] move;
-
-        if (turnPlayer == playerOne) {
-            move = playerOne.getMove(1);
+    public void getPlayerMove() {
+        if (!hasPlayerWon() && !(context.getState() instanceof FinishedEarlyState)) {
+            if (turnPlayer == PlayerEnum.PLAYER_ONE) {
+                System.out.println("Turn for player one");
+                playerOne.getMove(new GameMovePlayedCallback(), 2000);
+            } else {
+                System.out.println("Turn for player two");
+                playerTwo.getMove(new GameMovePlayedCallback(), 2000);
+            }
         } else {
-            move = playerTwo.getMove(1);
+            finish();
         }
+    }
 
+
+    public void playMove(byte[] move) {
         byte x = move[0];
         byte y = move[1];
 
         if (!isWithinBounds(x, y)) {
             System.err.println("Move is not within bounds.");
-        }
-        if (!isEmpty(x, y)) {
+            exception = new IllegalMoveException("Move is not within bounds.");
+            notifyObservers(GameEventEnum.EXCEPTION_THROWN);
+            finish();
+        } else if (!isEmpty(x, y)) {
             System.out.println("Square is not empty");
-        }
-
-        if (round % 2 == 0) {
-            board[y][x] = (byte) 1;
-            playerOneMarbleCount--;
+            exception = new IllegalMoveException("Square is not empty");
+            notifyObservers(GameEventEnum.EXCEPTION_THROWN);
+            finish();
         } else {
-            board[y][x] = (byte) 2;
-            playerTwoMarbleCount--;
-        }
+            if (turnPlayer == PlayerEnum.PLAYER_ONE) {
+                board[y][x] = (byte) 1;
+                playerOneMarbleCount--;
+                turnPlayer = PlayerEnum.PLAYER_TWO;
+            } else {
+                board[y][x] = (byte) 2;
+                playerTwoMarbleCount--;
+                turnPlayer = PlayerEnum.PLAYER_ONE;
+            }
 
-        for (byte dy = -1; dy < 2; dy++) {
-            for (byte dx = -1; dx < 2; dx++) {
-                if (!(dx == 0 && dy == 0)) {
-                    byte nx = (byte) (x + dx);
-                    byte ny = (byte) (y + dy);
+            for (byte dy = -1; dy < 2; dy++) {
+                for (byte dx = -1; dx < 2; dx++) {
+                    if (!(dx == 0 && dy == 0)) {
+                        byte nx = (byte) (x + dx);
+                        byte ny = (byte) (y + dy);
 
-                    if (isWithinBounds(nx, ny) && board[ny][nx] != 0) {
-                        while (isWithinBounds(nx, ny) && board[ny][nx] != 0) {
-                            nx += dx;
-                            ny += dy;
-                        }
-
-                        if (!isWithinBounds(nx, ny)) {
-                            if (board[ny - dy][nx - dx] == 1) {
-                                playerOneMarbleCount++;
-                            } else {
-                                playerTwoMarbleCount++;
+                        if (isWithinBounds(nx, ny) && board[ny][nx] != 0) {
+                            while (isWithinBounds(nx, ny) && board[ny][nx] != 0) {
+                                nx += dx;
+                                ny += dy;
                             }
-                            board[ny - dy][nx - dx] = 0;
-                        } else if (board[ny][nx] == 0) {
-                            board[ny][nx] = board[ny - dy][nx - dx];
-                            board[ny - dy][nx - dx] = 0;
+
+                            if (!isWithinBounds(nx, ny)) {
+                                if (board[ny - dy][nx - dx] == 1) {
+                                    playerOneMarbleCount++;
+                                } else {
+                                    playerTwoMarbleCount++;
+                                }
+                                board[ny - dy][nx - dx] = 0;
+                            } else if (board[ny][nx] == 0) {
+                                board[ny][nx] = board[ny - dy][nx - dx];
+                                board[ny - dy][nx - dx] = 0;
+                            }
                         }
-
                     }
-
                 }
             }
+            round++;
+            notifyObservers(GameEventEnum.MOVE_PLAYED);
+            getPlayerMove();
         }
-        round++;
-        notifyObservers(GameEventEnum.MOVE_PLAYED);
     }
 
     public void finishEarly() {
@@ -171,11 +187,15 @@ public class Game implements Subject {
         try {
             context.getState().reset(context);
 
+            round = 0;
+
             playerOne = null;
             playerTwo = null;
 
             playerOneMarbleCount = MARBLE_COUNT;
             playerTwoMarbleCount = MARBLE_COUNT;
+
+            turnPlayer = PlayerEnum.PLAYER_ONE;
 
             for (byte[] row : board) {
                 Arrays.fill(row, (byte) 0);
@@ -228,4 +248,13 @@ public class Game implements Subject {
             }
         }
     }
+
+    private class GameMovePlayedCallback implements Player.MovePlayedCallback {
+
+        @Override
+        public void onSuccess(byte[] move) {
+            playMove(move);
+        }
+    }
+
 }

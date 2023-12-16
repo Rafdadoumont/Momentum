@@ -1,18 +1,14 @@
 package model.player;
 
 import controller.HumanBoardController;
-import model.GameFacade;
-
-import java.util.Arrays;
-
+import model.Game;
 
 public class HumanPlayer implements Player {
     HumanBoardController humanBoardController;
-    GameFacade gameFacade;
-    byte[] move;
+    Game game;
 
-    public HumanPlayer(GameFacade gameFacade) {
-        //this.gameFacade = gameFacade;
+    public HumanPlayer(Game game) {
+        this.game = game;
     }
 
     public void setHumanBoardController(HumanBoardController humanBoardController) {
@@ -20,14 +16,8 @@ public class HumanPlayer implements Player {
     }
 
     @Override
-    public byte[] getMove(int seconds) {
-        try {
-            byte[] move = humanBoardController.getNextMove();
-            return move;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
+    public void getMove(MovePlayedCallback callback, long timeOut) {
+        humanBoardController.getNextMove(callback);
     }
 
     @Override

@@ -1,6 +1,12 @@
 package model.player;
 
+import model.Game;
+
 public interface Player {
-    byte[] getMove(int seconds);
+    void getMove(MovePlayedCallback callback, long timeOut);
     PlayerTypeEnum getPlayerType();
+
+    interface MovePlayedCallback {
+        void onSuccess(byte[] move);
+    }
 }

@@ -18,7 +18,6 @@ import java.util.List;
 
 public class BoardGridPane extends GridPane {
     BoardGridPaneController boardGridPaneController;
-    byte[] pressedSquare;
 
     public BoardGridPane() {
         setAlignment(Pos.CENTER);
@@ -43,17 +42,11 @@ public class BoardGridPane extends GridPane {
     private void createBoard() {
         for (byte row = 0; row < Game.DIMENSION; row++) {
             for (byte col = 0; col < Game.DIMENSION; col++) {
-                final byte currentCol = col;
-                final byte currentRow = row;
-
                 Square square = new Square(col, row);
+
                 if ((row + col) % 2 == 0) {
                     square.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
                 }
-//                square.setOnMouseClicked(e -> {
-//                    pressedSquare = new byte[]{currentCol, currentRow};
-//                });
-
                 this.add(square, col, row);
             }
         }
@@ -86,13 +79,5 @@ public class BoardGridPane extends GridPane {
                 square.getChildren().clear();
             }
         }
-    }
-
-    private byte[] getCoordinates(Square square) {
-        return new byte[]{square.getX(), square.getY()};
-    }
-
-    public interface OnSquareClickedListener {
-        void onSquareClicked(byte[] coordinates);
     }
 }

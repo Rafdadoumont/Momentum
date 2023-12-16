@@ -29,8 +29,9 @@ public abstract class PlayerPaneController implements Observer {
     protected void updateTurnIndicator() {
         Border idleBorder = new Border(new BorderStroke(player.getColor(), BorderStrokeStyle.SOLID, null, BorderStroke.DEFAULT_WIDTHS));
         Border activeBorder = new Border(new BorderStroke(player.getColor(), BorderStrokeStyle.SOLID, null, BorderStroke.MEDIUM));
+        PlayerEnum turnPlayer = gameFacade.getTurnPlayer();
 
-        if (gameFacade.getRound() % 2 == 0) {
+        if (turnPlayer == PlayerEnum.PLAYER_ONE) {
             if (player == PlayerEnum.PLAYER_ONE) {
                 playerPane.setBorder(activeBorder);
             } else if (player == PlayerEnum.PLAYER_TWO){

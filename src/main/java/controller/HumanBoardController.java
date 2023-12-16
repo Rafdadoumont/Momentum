@@ -1,9 +1,6 @@
 package controller;
 
-import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import model.GameEventEnum;
 import model.Observer;
@@ -12,48 +9,42 @@ import model.player.Player;
 import view.components.Square;
 import view.panes.BoardGridPane;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 
 public class HumanBoardController implements Observer {
     HumanPlayer player;
     BoardGridPane boardGridPane;
-    private CompletableFuture<byte[]> waitForMove;
-
-    private final EventHandler<MouseEvent> squareClickHandler = this::handleSquareClick;
 
     public HumanBoardController(Player player, BoardGridPane boardGridPane) {
         this.player = (HumanPlayer) player;
         this.boardGridPane = boardGridPane;
     }
 
-    public CompletableFuture<byte[]> getNextMove() {
-        boardGridPane.setDisable(false);
-
-        long currentMillis = System.currentTimeMillis();
-        Platform.runLater(() -> {
-            long newMillis = System.currentTimeMillis();
-            while (newMillis - currentMillis < 1000){
-                newMillis = System.currentTimeMillis();
-            }
-        });
-
-
-        waitForMove = new CompletableFuture<>();
-
+    public void getNextMove(Player.MovePlayedCallback callback) {
         Collection<Square> squares = boardGridPane.getAllSquares();
-        for (Square square: squares) {
-            square.addEventHandler(MouseEvent.MOUSE_CLICKED, squareClickHandler);
+        for (Square square : squares) {
+            EventHandler<MouseEvent> eventHandler = event -> handleSquareClick(event, callback);
+            square.setOnMouseClicked(eventHandler);
         }
-
-        return waitForMove;
+        boardGridPane.setDisable(false);
     }
 
-    private void handleSquareClick(MouseEvent event) {
-        System.out.println("Clicked");
+    private void handleSquareClick(MouseEvent event, Player.MovePlayedCallback callback) {
         Square clickedSquare = (Square) event.getSource();
         byte[] coordinates = getCoordinates(clickedSquare);
-        waitForMove.complete(coordinates);
+        System.out.println("Human Player wants to play move: " + Arrays.toString(coordinates));
+
+        clearSquareEventHandler();
+        boardGridPane.setDisable(true);
+        callback.onSuccess(coordinates);
+    }
+
+    private void clearSquareEventHandler() {
+        Collection<Square> squares = boardGridPane.getAllSquares();
+        for (Square square : squares) {
+            square.setOnMouseClicked(null);
+        }
     }
 
     private byte[] getCoordinates(Square square) {

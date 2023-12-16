@@ -1,37 +1,42 @@
 package model.algorithm;
 
-public class Node {
-    private final Node parent;
-    private final byte[][] board;
-    private final byte turn;
-    private final byte[] move;
+import java.util.ArrayList;
+import java.util.List;
 
-    public Node(Node parent, byte[][] board, byte[] move) {
-        this.parent = parent;
+public class Node {
+    private List<Node> children;
+    private final byte[][] board;
+    private final byte[] move;
+    private int evaluation;
+
+    public Node(byte[][] board, byte[] move) {
         this.board = board;
         this.move = move;
-
-        if (parent == null) {
-            this.turn = 1;
-        } else {
-            this.turn = (byte) ((parent.getTurn() == 1) ? 2 : 1);
-        }
+        children = new ArrayList<>();
     }
 
-    public Node getParent() {
-        return parent;
+    public void addChild(Node node) {
+        children.add(node);
+    }
+
+    public List<Node> getChildren() {
+        return children;
     }
 
     public byte[][] getBoard() {
         return board;
     }
 
-    public byte getTurn() {
-        return turn;
-    }
-
     public byte[] getMove() {
         return move;
+    }
+
+    public int getEvaluation() {
+        return evaluation;
+    }
+
+    public void setEvaluation(int evaluation) {
+        this.evaluation = evaluation;
     }
 
     @Override

@@ -5,23 +5,25 @@ import javafx.application.Platform;
 import model.Game;
 import model.PlayerEnum;
 import model.SingleThreadExecutor;
-import model.algorithm.RandomAlgorithm;
+import model.algorithm.MinimaxAlgorithm;
+import model.algorithm.Node;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class RandomPlayer implements Player, CPUPlayer {
-    RandomAlgorithm randomAlgorithm;
+public class MinimaxPlayer implements Player, CPUPlayer {
+    MinimaxAlgorithm minimaxAlgorithm;
     Executor executor;
     CPUBoardController cpuBoardController;
     Game game;
 
-    public RandomPlayer(Game game) {
+    public MinimaxPlayer(Game game) {
         this.game = game;
-        this.randomAlgorithm = new RandomAlgorithm();
+        this.minimaxAlgorithm = new MinimaxAlgorithm();
         this.executor = new SingleThreadExecutor();
     }
 
@@ -32,9 +34,24 @@ public class RandomPlayer implements Player, CPUPlayer {
 
     @Override
     public void getMove(MovePlayedCallback callback, long timeOut) {
+        Node node = new Node(game.getBoard(), null);
         final byte[][] bestMove = {new byte[1]};
+        final int[] currentDepth = {3};
+        final int[] maxEval = {Integer.MIN_VALUE};
 
-        Runnable moveCalculation = () -> bestMove[0] = randomAlgorithm.getAction(game.getTurnPlayer(), game.getBoard());
+        Runnable moveCalculation = () -> {
+            minimaxAlgorithm.minimax(node, (byte) currentDepth[0], true, PlayerEnum.PLAYER_TWO);
+            List<Node> children = node.getChildren();
+
+            for (Node child : children) {
+                if (child.getEvaluation() > maxEval[0]) {
+                    System.out.println(child.getEvaluation());
+                    maxEval[0] = child.getEvaluation();
+                    bestMove[0] = child.getMove();
+                }
+            }
+            currentDepth[0]++;
+        };
 
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.execute(moveCalculation);
@@ -42,7 +59,6 @@ public class RandomPlayer implements Player, CPUPlayer {
             executorService.shutdown();
             Platform.runLater(() -> callback.onSuccess(bestMove[0]));
         }, timeOut - 500, TimeUnit.MILLISECONDS);
-
     }
 
     @Override

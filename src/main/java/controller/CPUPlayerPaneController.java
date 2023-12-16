@@ -21,22 +21,23 @@ public class CPUPlayerPaneController extends PlayerPaneController implements Obs
         cpuPlayerPane.getTitleLabel().setTextFill(super.player.getColor());
         cpuPlayerPane.getSubTitleLabel().setText(playerType.toString().charAt(0) + playerType.toString().substring(1).toLowerCase());
         cpuPlayerPane.getSubTitleLabel().setTextFill(super.player.getColor());
+        updateMarbleCount();
     }
 
-//    private void updateMarbleCount() {
-//        if (super.player == PlayerEnum.PLAYER_ONE) {
-//            cpuPlayerPane.getMarbleCountLabel().setText("Marbles: " + gameFacade.getPlayerOneMarbleCount());
-//        } else if (super.player == PlayerEnum.PLAYER_TWO) {
-//            cpuPlayerPane.getMarbleCountLabel().setText("Marbles: " + gameFacade.getPlayerTwoMarbleCount());
-//        }
-//    }
+    private void updateMarbleCount() {
+        if (super.player == PlayerEnum.PLAYER_ONE) {
+            cpuPlayerPane.getMarbleCountLabel().setText("Marbles: " + gameFacade.getPlayerOneMarbleCount());
+        } else if (super.player == PlayerEnum.PLAYER_TWO) {
+            cpuPlayerPane.getMarbleCountLabel().setText("Marbles: " + gameFacade.getPlayerTwoMarbleCount());
+        }
+    }
 
     @Override
     public void update(GameEventEnum event) {
         super.update(event);
 
-//        switch (event) {
-//            case START_GAME, MOVE_PLAYED -> updateMarbleCount();
-//        }
+        switch (event) {
+            case START_GAME, MOVE_PLAYED -> updateMarbleCount();
+        }
     }
 }

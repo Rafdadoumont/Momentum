@@ -2,6 +2,7 @@ package model.player;
 
 import controller.CPUBoardController;
 import controller.HumanBoardController;
+import model.Game;
 import model.GameEventEnum;
 import model.GameFacade;
 import view.panes.BoardGridPane;
@@ -15,13 +16,13 @@ public class PlayerFactory {
         this.gameFacade = gameFacade;
     }
 
-    public Player createPlayer(PlayerTypeEnum player) {
+    public Player createPlayer(PlayerTypeEnum player, Game game) {
         Player out = null;
 
         try {
             Class<?> playerClass = Class.forName(player.getClassName());
-            Constructor<?> playerConstructor = playerClass.getConstructor(GameFacade.class);
-            out = (Player) playerConstructor.newInstance(gameFacade);
+            Constructor<?> playerConstructor = playerClass.getConstructor(Game.class);
+            out = (Player) playerConstructor.newInstance(game);
 
             Class<?> boardControllerClass = Class.forName(player.getControllerClassName());
             Constructor<?> controllerConstructor = boardControllerClass.getConstructor(Player.class, BoardGridPane.class);
