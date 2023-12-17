@@ -94,10 +94,10 @@ public class Game implements Subject {
         if (!hasPlayerWon() && !(context.getState() instanceof FinishedEarlyState)) {
             if (turnPlayer == PlayerEnum.PLAYER_ONE) {
                 System.out.println("Turn for player one");
-                playerOne.getMove(new GameMovePlayedCallback(), 2000);
+                playerOne.getMove(new GameMovePlayedCallback(), 5000);
             } else {
                 System.out.println("Turn for player two");
-                playerTwo.getMove(new GameMovePlayedCallback(), 2000);
+                playerTwo.getMove(new GameMovePlayedCallback(), 5000);
             }
         } else {
             finish();

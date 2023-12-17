@@ -10,10 +10,7 @@ import model.algorithm.Node;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class MinimaxPlayer implements Player, CPUPlayer {
     MinimaxAlgorithm minimaxAlgorithm;
@@ -36,29 +33,39 @@ public class MinimaxPlayer implements Player, CPUPlayer {
     public void getMove(MovePlayedCallback callback, long timeOut) {
         Node node = new Node(game.getBoard(), null);
         final byte[][] bestMove = {new byte[1]};
-        final int[] currentDepth = {3};
+        final int[] currentDepth = {1};
         final int[] maxEval = {Integer.MIN_VALUE};
+        final long startTime = System.currentTimeMillis();
+
 
         Runnable moveCalculation = () -> {
-            minimaxAlgorithm.minimax(node, (byte) currentDepth[0], true, PlayerEnum.PLAYER_TWO);
-            List<Node> children = node.getChildren();
+            while (System.currentTimeMillis() - startTime < timeOut) {
+                minimaxAlgorithm.minimax(node, (byte) currentDepth[0], PlayerEnum.PLAYER_TWO);
+                List<Node> children = node.getChildren();
 
-            for (Node child : children) {
-                if (child.getEvaluation() > maxEval[0]) {
-                    System.out.println(child.getEvaluation());
-                    maxEval[0] = child.getEvaluation();
-                    bestMove[0] = child.getMove();
+                for (Node child : children) {
+                    if (child.getEvaluation() > maxEval[0]) {
+                        maxEval[0] = child.getEvaluation();
+                        bestMove[0] = child.getMove();
+                    }
                 }
+                System.out.println("Depth: " + currentDepth[0]);
+                currentDepth[0]++;
             }
-            currentDepth[0]++;
         };
 
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.execute(moveCalculation);
-        executorService.schedule(() -> {
-            executorService.shutdown();
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+        Future<?> future = executor.submit(moveCalculation);
+        Runnable cancelTask = () -> {
+            System.out.println("Cancel task");
+            future.cancel(true);
+            System.out.println("Interrupt thread");
+            Thread.currentThread().interrupt(); // Interrupt the thread
             Platform.runLater(() -> callback.onSuccess(bestMove[0]));
-        }, timeOut - 500, TimeUnit.MILLISECONDS);
+        };
+
+        executor.schedule(cancelTask, timeOut, TimeUnit.MILLISECONDS);
+        executor.shutdown();
     }
 
     @Override

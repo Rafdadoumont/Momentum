@@ -1,11 +1,15 @@
 package model.player;
 
 import controller.CPUBoardController;
+import controller.CPUPlayerPaneController;
 import controller.HumanBoardController;
+import controller.PlayerPaneController;
 import model.Game;
 import model.GameEventEnum;
 import model.GameFacade;
+import model.PlayerEnum;
 import view.panes.BoardGridPane;
+import view.panes.PlayerPaneFactory;
 
 import java.lang.reflect.Constructor;
 
@@ -16,21 +20,22 @@ public class PlayerFactory {
         this.gameFacade = gameFacade;
     }
 
-    public Player createPlayer(PlayerTypeEnum player, Game game) {
+    public Player createPlayer(PlayerTypeEnum playerType, Game game) {
         Player out = null;
 
         try {
-            Class<?> playerClass = Class.forName(player.getClassName());
+            Class<?> playerClass = Class.forName(playerType.getClassName());
             Constructor<?> playerConstructor = playerClass.getConstructor(Game.class);
             out = (Player) playerConstructor.newInstance(game);
 
-            Class<?> boardControllerClass = Class.forName(player.getControllerClassName());
+            Class<?> boardControllerClass = Class.forName(playerType.getControllerClassName());
             Constructor<?> controllerConstructor = boardControllerClass.getConstructor(Player.class, BoardGridPane.class);
             Object controller = controllerConstructor.newInstance(out, gameFacade.getBoardGridPane());
 
             if (out instanceof CPUPlayer cpuPlayer) {
                 CPUBoardController cpuBoardController = (CPUBoardController) controller;
                 cpuPlayer.setCpuBoardController(cpuBoardController);
+
                 gameFacade.addObserver(cpuBoardController, GameEventEnum.START_GAME);
                 gameFacade.addObserver(cpuBoardController, GameEventEnum.MOVE_PLAYED);
             } else {
